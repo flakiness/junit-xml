@@ -29,6 +29,31 @@ flakiness-junit-xml <junit-path> [options]
 
 Requires Node.js `^20.17.0 || >=22.9.0`.
 
+## Bun
+
+`bun test` emits JUnit XML with `--reporter=junit`:
+
+```bash
+bun test --reporter=junit --reporter-outfile=./junit.xml
+npx @flakiness/junit-xml ./junit.xml --category bun --flakiness-project myorg/myproject
+```
+
+## Rust
+
+`cargo test` doesn't emit JUnit XML; [`cargo-nextest`](https://nexte.st/) does. Add a CI profile in `.config/nextest.toml`:
+
+```toml
+[profile.ci.junit]
+path = "junit.xml"
+```
+
+Run the tests, then point at the XML nextest writes under `target/nextest/`:
+
+```bash
+cargo nextest run --profile ci
+npx @flakiness/junit-xml ./target/nextest/ci/junit.xml --category rust --flakiness-project myorg/myproject
+```
+
 ## Uploading
 
 The report is uploaded to flakiness.io automatically. Authentication, in priority order:
