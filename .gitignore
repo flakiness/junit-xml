@@ -1,0 +1,11 @@
+node_modules/
+lib/
+types/
+test-results/
+flakiness-report/
+playwright-report/
+*.tsbuildinfo
+.DS_Store
+.env*
+.vscode/
+.idea/

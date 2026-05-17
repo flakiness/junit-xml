@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites time="123">
+    <testsuite name="chromium" time="100">
+        <testcase name="test 1" classname="example.spec.ts > test 1" time="20" />
+        <testcase name="test 2" classname="example.spec.ts > test 2" time="30" />
+        <testcase name="test 3" classname="example.spec.ts > test 3" time="50" />
+    </testsuite>
+    <testsuite name="webkit" time="23">
+        <testsuite name="inner suite" time="6">
+            <testcase name="test 4" classname="example.spec.ts > inner > test 4" time="1">
+                <system-out> last test 4 out </system-out>
+                <system-err> last test 4 err </system-err>
+                <flakyFailure message="expect(retry).toBe(1) failed" type="AssertionError" time="5">
+                    <stackTrace>
+                        at expect.toBe (example.spec.ts:8:10)
+                    </stackTrace>
+                    <system-out> flaky test 4 out </system-out>
+                    <system-err> flaky test 4 err </system-err>
+                </flakyFailure>
+            </testcase>
+            <testcase name="test 5" classname="example.spec.ts > inner > test 5" time="2" />
+            <testcase name="test 6" classname="example.spec.ts > inner > test 6" time="3">
+                <system-out> last test 6 out </system-out>
+                <system-err> last test 6 err </system-err>
+                <flakyError message="CRASH!" type="Error" time="0.1">
+                    <stackTrace>
+                        at Object.anonymous (example.spec.ts:15:20)
+                    </stackTrace>
+                    <system-out> flaky test 6 out </system-out>
+                    <system-err> flaky test 6 err </system-err>
+                </flakyError>
+            </testcase>
+        </testsuite>
+        <testcase name="test 7" classname="example.spec.ts > test 7" time="4">
+            <failure message="expect(retry).toBe(2) failed" type="AssertionError">
+                at expect.toBe (example.spec.ts:12:15)
+            </failure>
+            <system-out> first test 7 out </system-out>
+            <system-err> first test 7 err </system-err>
+            <rerunFailure message="expect(retry).toBe(2) failed" type="AssertionError" time="0.1">
+                <stackTrace>
+                    at expect.toBe (example.spec.ts:12:15)
+                </stackTrace>
+                <system-out> rerun test 7 out </system-out>
+                <system-err> rerun test 7 err </system-err>
+            </rerunFailure>
+        </testcase>
+        <testcase name="test 8" classname="example.spec.ts > test 8" time="5">
+            <error message="CRASH!" type="Error">
+                at Object.anonymous (example.spec.ts:15:20)
+            </error>
+            <system-out> first test 8 out </system-out>
+            <system-err> first test 8 err </system-err>
+            <rerunError message="CRASH!" type="Error" time="0.1">
+                <stackTrace>
+                    at Object.anonymous (example.spec.ts:15:20)
+                </stackTrace>
+                <system-out> rerun test 8 out </system-out>
+                <system-err> rerun test 8 err </system-err>
+            </rerunError>
+        </testcase>
+        <testcase name="test 9" classname="example.spec.ts > test 9" time="8" >
+            <failure message="expect(1).toBe(2) failed" type="AssertionError">
+                at expect.toBe (example.spec.ts:10:15)
+            </failure>
+        </testcase>
+    </testsuite>
+</testsuites>

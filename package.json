@@ -1,0 +1,61 @@
+{
+  "name": "@flakiness/junit-xml",
+  "version": "0.0.1",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flakiness/junit-xml.git"
+  },
+  "description": "Convert JUnit XML test reports into Flakiness Reports",
+  "exports": {
+    "./cli": {
+      "types": "./types/src/cli.d.ts",
+      "import": "./lib/cli.js",
+      "require": "./lib/cli.js"
+    },
+    "./parser": {
+      "types": "./types/src/parser.d.ts",
+      "import": "./lib/parser.js",
+      "require": "./lib/parser.js"
+    }
+  },
+  "bin": {
+    "flakiness-junit-xml": "./lib/bin.js"
+  },
+  "scripts": {
+    "build": "kubik build.mts",
+    "watch": "kubik build.mts -w",
+    "test": "playwright test"
+  },
+  "keywords": [
+    "junit",
+    "junit-xml",
+    "surefire",
+    "testng",
+    "flakiness",
+    "testing",
+    "reporter"
+  ],
+  "author": "Degu Labs, Inc",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": "^20.17.0 || >=22.9.0"
+  },
+  "dependencies": {
+    "@flakiness/flakiness-report": "^0.34.0",
+    "@flakiness/sdk": "^3.2.0",
+    "@rgrove/parse-xml": "^4.2.0",
+    "commander": "^14.0.3",
+    "mime": "^4.1.0",
+    "temporal-polyfill": "^0.3.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^25.0.3",
+    "esbuild": "^0.27.2",
+    "kubik": "^0.24.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

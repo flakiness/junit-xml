@@ -1,0 +1,75 @@
+import { ReportUtils } from '@flakiness/sdk';
+import type { FlakinessReport as FK } from '@flakiness/flakiness-report';
+import { expect, test } from '@playwright/test';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
+import { parseJUnit } from '../src/parser.js';
+import { assertCount } from './utils.js';
+
+const FIXTURES = path.resolve(import.meta.dirname, 'assets');
+
+async function loadFixture(name: string): Promise<string> {
+  return fs.readFile(path.join(FIXTURES, name), 'utf8');
+}
+
+function defaultOptions() {
+  return {
+    defaultEnv: ReportUtils.createEnvironment({ name: 'junit' }),
+    commitId: 'fake-commit-id' as FK.CommitId,
+    runDuration: 0 as FK.DurationMS,
+    runStartTimestamp: Date.now() as FK.UnixTimestampMS,
+  };
+}
+
+test('should parse TestNG timestamps', async () => {
+  const xml = await loadFixture('junit-testng.xml');
+  const { report } = await parseJUnit([xml], defaultOptions());
+
+  const [suite] = assertCount(report.suites, 1);
+  expect(suite.title).toBe('com.ing.engine.constants.SystemDefaultsNGTest');
+
+  const [test1, test2] = assertCount(suite.tests, 2);
+  expect(test1.title).toBe('testGetBuildVersion');
+  expect(test2.title).toBe('testPrintSystemInfo');
+
+  // Verify the timestamp was parsed (not NaN).
+  expect(test1.attempts[0].startTimestamp).not.toBeNaN();
+  expect(test1.attempts[0].startTimestamp).toBeGreaterThan(0);
+});
+
+test('should produce a Flakiness Report from a basic JUnit XML', async () => {
+  const xml = await loadFixture('junit-basic.xml');
+  const { report } = await parseJUnit([xml], defaultOptions());
+
+  const [chromium, webkit] = assertCount(report.suites, 2);
+  expect(chromium.title).toBe('chromium');
+
+  const [cTest1, cTest2, cTest3] = assertCount(chromium.tests, 3);
+  assertCount(cTest1.attempts, 1);
+  assertCount(cTest2.attempts, 1);
+  assertCount(cTest3.attempts, 1);
+
+  const [inner] = assertCount(webkit.suites, 1);
+  const [iTest1, iTest2, iTest3] = assertCount(inner.tests, 3);
+  assertCount(iTest1.attempts, 2);
+  assertCount(iTest2.attempts, 1);
+  assertCount(iTest3.attempts, 2);
+
+  const [wTest1, wTest2, wTest3] = assertCount(webkit.tests, 3);
+  assertCount(wTest1.attempts, 2);
+  assertCount(wTest2.attempts, 2);
+  assertCount(wTest3.attempts, 1);
+});
+
+test('should set the report category to `junit` by default', async () => {
+  const xml = await loadFixture('junit-basic.xml');
+  const { report } = await parseJUnit([xml], defaultOptions());
+  expect(report.category).toBe('junit');
+});
+
+test('should honor the `category` override', async () => {
+  const xml = await loadFixture('junit-basic.xml');
+  const { report } = await parseJUnit([xml], { ...defaultOptions(), category: 'bun' });
+  expect(report.category).toBe('bun');
+});
