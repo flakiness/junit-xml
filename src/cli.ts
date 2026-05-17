@@ -1,57 +1,65 @@
+#!/usr/bin/env node
 import { FlakinessReport } from '@flakiness/flakiness-report';
-import { CIUtils, GitWorktree, ReportUtils, writeReport } from '@flakiness/sdk';
+import { CIUtils, GitWorktree, ReportUtils, uploadReport, writeReport } from '@flakiness/sdk';
 import { Command, Option } from 'commander';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { parseJUnit } from './parser.js';
 
-/**
- * Build a commander `Command` that converts JUnit XML to a Flakiness Report.
- *
- * Used two ways:
- * 1. Standalone — the package's `bin` entrypoint renames it and invokes `parseAsync(process.argv)`.
- * 2. As a subcommand — host CLIs (e.g. the Flakiness monorepo CLI) rename it and `addCommand` it
- *    on their own commander program.
- *
- * @param name - The command name (e.g. `'convert-junit'` as a subcommand, or
- *   `'flakiness-junit-xml'` as a standalone bin). Shown in help/usage output.
- *
- * @example
- * import { createCommand } from '@flakiness/junit-xml';
- * program.addCommand(createCommand('convert-junit'));
- */
-export function createCommand(name: string): Command {
-  return new Command(name)
-    .description('Convert JUnit XML report(s) to Flakiness report format')
-    .argument('<junit-path>', 'Path to a JUnit XML file or a directory containing XML files')
-    .option('--env-name <name>', 'Environment name for the report (defaults to --category, or `junit` if neither is set)')
-    .option('--commit-id <id>', 'Git commit ID (auto-detected from the current working directory if not provided)')
-    .addOption(new Option('--title <title>', 'Human-readable report title').env('FLAKINESS_TITLE'))
-    .option('--output-dir <dir>', 'Output directory for the report', 'flakiness-report')
-    .option('-c, --category <category>', 'Report category identifier (e.g. `bun`, `rust`). Defaults to `junit`.')
-    .addOption(new Option('--flakiness-project <project>', 'Flakiness project identifier in `org/project` format').env('FLAKINESS_PROJECT'))
-    // Backwards-compat alias: the Flakiness CLI historically exposed this as `-p, --project`.
-    // Hidden from help so `--flakiness-project` is the one documented form.
-    .addOption(new Option('-p, --project <org/project>').hideHelp())
-    .action(async (junitPath: string, options: {
-      envName?: string,
-      commitId?: string,
-      title?: string,
-      outputDir: string,
-      category?: string,
-      flakinessProject?: string,
-      project?: string,
-    }) => {
-      await runConvert(junitPath, {
-        envName: options.envName ?? options.category ?? 'junit',
-        outputDir: options.outputDir,
-        commitId: options.commitId,
-        title: options.title,
-        category: options.category,
-        flakinessProject: options.flakinessProject ?? options.project,
-      });
-    });
+const STDERR_LOGGER = {
+  log: (...args: unknown[]) => console.error(...args),
+  warn: (...args: unknown[]) => console.error(...args),
+  error: (...args: unknown[]) => console.error(...args),
+};
+
+function envBool(name: string): boolean {
+  return ['1', 'true'].includes(process.env[name]?.toLowerCase() ?? '');
 }
+
+const program = new Command('flakiness-junit-xml')
+  .description('Convert JUnit XML report(s) to a Flakiness report and upload it to flakiness.io')
+  .argument('<junit-path>', 'Path to a JUnit XML file or a directory containing XML files')
+  .option('-c, --category <category>', 'Report category identifier (e.g. `bun`, `rust`). Defaults to `junit`.')
+  .option('--env-name <name>', 'Environment name for the report (defaults to --category, or `junit` if neither is set)')
+  .option('--commit-id <id>', 'Git commit ID (auto-detected from the current working directory if not provided)')
+  .addOption(new Option('--title <title>', 'Human-readable report title').env('FLAKINESS_TITLE'))
+  .option('--output-dir <dir>', 'Output directory for the report', 'flakiness-report')
+  .addOption(new Option('--flakiness-project <project>', 'Flakiness project identifier in `org/project` format').env('FLAKINESS_PROJECT'))
+  // Backwards-compat alias: the Flakiness CLI historically exposed this as `-p, --project`.
+  // Hidden from help so `--flakiness-project` is the one documented form.
+  .addOption(new Option('-p, --project <org/project>').hideHelp())
+  .addOption(new Option('--token <token>', 'Flakiness.io access token for upload').env('FLAKINESS_ACCESS_TOKEN'))
+  .option('--endpoint <url>', 'Flakiness.io API endpoint override')
+  .addOption(new Option('--disable-upload', 'Convert only; do not upload to flakiness.io').env('FLAKINESS_DISABLE_UPLOAD'))
+  .action(async (junitPath: string, options: {
+    envName?: string,
+    commitId?: string,
+    title?: string,
+    outputDir: string,
+    category?: string,
+    flakinessProject?: string,
+    project?: string,
+    token?: string,
+    endpoint?: string,
+    disableUpload?: boolean,
+  }) => {
+    await runConvert(junitPath, {
+      envName: options.envName ?? options.category ?? 'junit',
+      outputDir: options.outputDir,
+      commitId: options.commitId,
+      title: options.title,
+      category: options.category,
+      flakinessProject: options.flakinessProject ?? options.project,
+      token: options.token,
+      endpoint: options.endpoint,
+      disableUpload: !!options.disableUpload,
+    });
+  });
+
+program.parseAsync(process.argv).catch((err: unknown) => {
+  console.error(err);
+  process.exit(1);
+});
 
 async function runConvert(junitPath: string, options: {
   envName: string,
@@ -60,6 +68,9 @@ async function runConvert(junitPath: string, options: {
   outputDir: string,
   flakinessProject?: string,
   category?: string,
+  token?: string,
+  endpoint?: string,
+  disableUpload?: boolean,
 }): Promise<void> {
   const fullPath = path.resolve(junitPath);
   if (!(await exists(fullPath))) {
@@ -114,6 +125,18 @@ async function runConvert(junitPath: string, options: {
 
   await writeReport(report, attachments, options.outputDir);
   console.log(`✓ Saved to ${options.outputDir}`);
+
+  // Auto-upload, matching the reporter family's contract. Gated by
+  // --disable-upload / FLAKINESS_DISABLE_UPLOAD. Auth is via --token /
+  // FLAKINESS_ACCESS_TOKEN, or GitHub OIDC when `flakinessProject` is set.
+  const disableUpload = options.disableUpload || envBool('FLAKINESS_DISABLE_UPLOAD');
+  if (!disableUpload) {
+    await uploadReport(report, attachments, {
+      flakinessAccessToken: options.token,
+      flakinessEndpoint: options.endpoint,
+      logger: STDERR_LOGGER,
+    });
+  }
 }
 
 async function exists(p: string): Promise<boolean> {

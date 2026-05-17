@@ -7,20 +7,8 @@
     "url": "git+https://github.com/flakiness/junit-xml.git"
   },
   "description": "Convert JUnit XML test reports into Flakiness Reports",
-  "exports": {
-    "./cli": {
-      "types": "./types/src/cli.d.ts",
-      "import": "./lib/cli.js",
-      "require": "./lib/cli.js"
-    },
-    "./parser": {
-      "types": "./types/src/parser.d.ts",
-      "import": "./lib/parser.js",
-      "require": "./lib/parser.js"
-    }
-  },
   "bin": {
-    "flakiness-junit-xml": "./lib/bin.js"
+    "flakiness-junit-xml": "./lib/cli.js"
   },
   "scripts": {
     "build": "kubik build.mts",

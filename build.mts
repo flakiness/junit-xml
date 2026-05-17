@@ -18,12 +18,11 @@ await fs.promises.rm(typesDir, { recursive: true, force: true });
 
 const { errors } = await esbuild.build({
   color: true,
-  // bundle is false, so every module imported at runtime must be its own entry point.
+  // bundle is false, so every module imported at runtime must be its own entry
+  // point. cli.ts (the bin) → parser.ts is the only chain.
   entryPoints: [
-    path.join(srcDir, 'index.ts'),
     path.join(srcDir, 'parser.ts'),
     path.join(srcDir, 'cli.ts'),
-    path.join(srcDir, 'bin.ts'),
   ],
   outdir: outDir,
   format: 'esm',
@@ -38,5 +37,5 @@ if (!errors.length) {
   await $`tsc --pretty -p .`;
   // The bin entrypoint needs to be executable so that `npm i -g @flakiness/junit-xml`
   // and `npx @flakiness/junit-xml ...` can invoke it directly.
-  await fs.promises.chmod(path.join(outDir, 'bin.js'), 0o755);
+  await fs.promises.chmod(path.join(outDir, 'cli.js'), 0o755);
 }

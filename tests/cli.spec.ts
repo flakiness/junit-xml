@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '..');
-const BIN = path.join(REPO_ROOT, 'lib', 'bin.js');
+const BIN = path.join(REPO_ROOT, 'lib', 'cli.js');
 const BASIC_XML = path.join(REPO_ROOT, 'tests', 'assets', 'junit-basic.xml');
 
 test('the bin converts a JUnit XML file into a Flakiness report on disk', async () => {
@@ -19,6 +19,7 @@ test('the bin converts a JUnit XML file into a Flakiness report on disk', async 
     '--commit-id', 'cli-smoke-commit',
     '--output-dir', outputDir,
     '--category', 'bun',
+    '--disable-upload',
   ], { stdio: 'pipe' });
 
   const { report } = await readReport(outputDir);
