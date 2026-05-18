@@ -10,7 +10,7 @@ npx @flakiness/junit-xml ./build/reports/junit --flakiness-project myorg/myproje
 
 This combines every XML file under the given path into a single Flakiness report and uploads it to flakiness.io.
 
-If your environment has no Node.js (or you don't want a `node_modules` round-trip in CI), a [standalone binary](#standalone-binary-no-nodejs) is also available.
+If your environment has no Node.js, a [standalone binary](#standalone-binary-no-nodejs) is also available.
 
 ## Contents
 
