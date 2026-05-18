@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="bun test" tests="3" assertions="2" failures="1" skipped="1" time="0.0389787">
+  <testsuite name="tests\unit\cli.test.ts" file="tests\unit\cli.test.ts" tests="3" assertions="2" failures="1" skipped="1" time="0" hostname="">
+    <properties>
+      <property name="ci" value="https://github.com/flakiness/junit-xml/actions/runs/26056402517" />
+      <property name="commit" value="da538deee26189498a1f352f1df5daf338e7ba96" />
+    </properties>
+    <testcase name="addition works" classname="" time="0.000232" file="tests\unit\cli.test.ts" line="3" assertions="1" />
+    <testcase name="this one fails on purpose" classname="" time="0.000576" file="tests\unit\cli.test.ts" line="7" assertions="1">
+      <failure type="AssertionError" />
+    </testcase>
+    <testcase name="skipped on purpose" classname="" time="0" file="tests\unit\cli.test.ts" line="11" assertions="0">
+      <skipped />
+    </testcase>
+  </testsuite>
+</testsuites>
