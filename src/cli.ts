@@ -4,6 +4,7 @@ import { CIUtils, GitWorktree, ReportUtils, uploadReport, writeReport } from '@f
 import { Command, Option } from 'commander';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import pkg from '../package.json' with { type: 'json' };
 import { parseJUnit } from './parser.js';
 
 const STDERR_LOGGER = {
@@ -18,6 +19,7 @@ function envBool(name: string): boolean {
 
 const program = new Command('flakiness-junit-xml')
   .description('Convert JUnit XML report(s) to a Flakiness report and upload it to flakiness.io')
+  .version(pkg.version, '-v, --version', 'Output the version number')
   .argument('<junit-path>', 'Path to a JUnit XML file or a directory containing XML files')
   .option('-c, --category <category>', 'Report category identifier (e.g. `bun`, `rust`). Defaults to `junit`.')
   .option('--env-name <name>', 'Environment name for the report (defaults to --category, or `junit` if neither is set)')
