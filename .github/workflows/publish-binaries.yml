@@ -38,12 +38,20 @@ jobs:
       - name: Compress binaries
         run: gzip -9 deployment/dist/*
 
+      - name: Render installers from templates (pin to this release)
+        run: |
+          RELEASE_BASE_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}"
+          sed "s#{{RELEASE_BASE_URL}}#${RELEASE_BASE_URL}#g" \
+            deployment/assets/install.template.sh > deployment/dist/install.sh
+          sed "s#{{RELEASE_BASE_URL}}#${RELEASE_BASE_URL}#g" \
+            deployment/assets/install.template.ps1 > deployment/dist/install.ps1
+
       - name: Upload assets to release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release upload "$GITHUB_REF_NAME" \
             deployment/dist/*.gz \
-            deployment/assets/install.sh \
-            deployment/assets/install.ps1 \
+            deployment/dist/install.sh \
+            deployment/dist/install.ps1 \
             --clobber

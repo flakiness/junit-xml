@@ -3,10 +3,15 @@ $ErrorActionPreference = "Stop"
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-# Usage: irm https://github.com/flakiness/junit-xml/releases/latest/download/install.ps1 | iex
+# This is a TEMPLATE. The release workflow renders it into install.ps1 by
+# replacing {{RELEASE_BASE_URL}} with this release's download URL, so the
+# uploaded installer always pins to the exact release it ships with.
+# Running this template file directly will not work — use the published
+# installer:
+#   irm https://github.com/flakiness/junit-xml/releases/latest/download/install.ps1 | iex
 
 # 1. Configuration
-$BaseUrl = "https://github.com/flakiness/junit-xml/releases/latest/download"
+$BaseUrl = "{{RELEASE_BASE_URL}}"
 $ToolName = "flakiness-junit-xml"
 $InstallDir = "$env:LOCALAPPDATA\$ToolName"
 $ExeName = "$ToolName.exe"
