@@ -153,15 +153,24 @@ async function traverseJUnitReport(context: ProcessingContext, node: XmlNode) {
     const file = element.attributes['file'];
     const line = parseInt(element.attributes['line'], 10);
     const name = element.attributes['name'];
+    // bun/jest-style runners emit one top-level <testsuite> per file with the
+    // file path doubling as the suite name (name === file, e.g.
+    // name="sample.test.ts" file="sample.test.ts"). Recognize that as a file
+    // suite: it's not an ordinary named suite, so mark type 'file' and
+    // normalize the path-shaped title (backslashes on bun-on-Windows) the same
+    // way the location is normalized.
+    const isTopSuiteAFileSuite = !currentSuite && !!name && name === file;
+    const isFileSuite = isTopSuiteAFileSuite || (!name && file);
+    const filePath = file ? toGitFilePath(file) : undefined;
     const newSuite: FK.Suite = {
-      title: name ?? file,
-      location: file && !isNaN(line) ? {
-        file: toGitFilePath(file),
+      title: isFileSuite && filePath ? filePath : name,
+      location: filePath && !isNaN(line) ? {
+        file: filePath,
         line: line as FK.Number1Based,
         column: 1 as FK.Number1Based,
       } : undefined,
-      type: name ? 'suite' :
-            file ? 'file' :
+      type: isFileSuite ? 'file' :
+            name ? 'suite' :
             'anonymous suite',
       suites: [],
       tests: [],
