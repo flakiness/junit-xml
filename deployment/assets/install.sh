@@ -112,7 +112,10 @@ detect_platform() {
     elif [ "$OS" = "macos" ]; then
         FILENAME="${BINARY_NAME}-macos-${ARCH}.gz"
     elif [ "$OS" = "win" ]; then
-        FILENAME="${BINARY_NAME}-win-${ARCH}.exe.gz"
+        # Bun has no windows-arm64 compile target, so we only ship win-x64.
+        # Windows 11 on ARM runs the x64 binary via built-in emulation, so
+        # always select x64 here (mirrors install.ps1).
+        FILENAME="${BINARY_NAME}-win-x64.exe.gz"
         BINARY_NAME="${BINARY_NAME}.exe"
     fi
 
