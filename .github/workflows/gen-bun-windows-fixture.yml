@@ -1,0 +1,59 @@
+# Throwaway job: produces a REAL bun-on-Windows JUnit XML so we can pin a
+# regression fixture for backslash paths. Auto-runs on PRs that touch this
+# file (path filter keeps it off every other PR). Not meant to be merged —
+# download the `junit-bun-windows` artifact, then close/repurpose the PR.
+name: gen-bun-windows-fixture
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/gen-bun-windows-fixture.yml'
+
+jobs:
+  gen:
+    runs-on: windows-latest
+    steps:
+      - uses: oven-sh/setup-bun@v2
+
+      # Nested dir on purpose: forces a multi-segment path so the Windows
+      # separator actually shows up as tests\unit\cli.test.ts in file=.
+      # Passing + failing + skipped so the fixture exercises all status paths.
+      - name: Write sample suite
+        shell: bash
+        run: |
+          mkdir -p tests/unit
+          cat > tests/unit/cli.test.ts <<'EOF'
+          import { test, expect } from "bun:test";
+
+          test("addition works", () => {
+            expect(1 + 1).toBe(2);
+          });
+
+          test("this one fails on purpose", () => {
+            expect(1).toBe(2);
+          });
+
+          test.skip("skipped on purpose", () => {
+            expect(true).toBe(false);
+          });
+          EOF
+
+      # A failing test makes `bun test` exit non-zero; that's expected and
+      # must not fail the job or skip the upload.
+      - name: Run bun test (junit reporter)
+        shell: bash
+        continue-on-error: true
+        run: bun test --reporter=junit --reporter-outfile=./junit-bun-windows.xml
+
+      - name: Show generated XML in logs
+        if: always()
+        shell: bash
+        run: cat ./junit-bun-windows.xml || echo "no xml produced — check bun test --help for the correct reporter flags"
+
+      - name: Upload fixture artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-bun-windows
+          path: ./junit-bun-windows.xml
+          if-no-files-found: error
