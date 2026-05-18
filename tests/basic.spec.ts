@@ -110,6 +110,22 @@ test('should parse `cargo nextest` JUnit XML', async () => {
   expect(JSON.stringify(failAttempt.errors)).toContain('two plus two is not five');
 });
 
+// bun on Windows writes file="tests\unit\cli.test.ts" into the JUnit XML.
+// GitFilePath must be POSIX/git-style everywhere in the system, so the parser
+// has to normalize `\` -> `/` at this ingestion boundary. Pinned to the real
+// bun-on-Windows artifact.
+test('should normalize Windows backslash paths from bun-on-Windows JUnit XML to POSIX', async () => {
+  const xml = await loadFixture('junit-bun-windows.xml');
+  const { report } = await parseJUnit([xml], { ...defaultOptions(), category: 'bun' });
+
+  const [suite] = assertCount(report.suites, 1);
+  const [pass, fail, skip] = assertCount(suite.tests, 3);
+
+  // (`!` is safe: bun emits file= and line= on every testcase.)
+  for (const t of [pass, fail, skip])
+    expect(t.location!.file).toBe('tests/unit/cli.test.ts');
+});
+
 test('should set the report category to `junit` by default', async () => {
   const xml = await loadFixture('junit-basic.xml');
   const { report } = await parseJUnit([xml], defaultOptions());

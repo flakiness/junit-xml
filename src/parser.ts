@@ -11,6 +11,14 @@ import path from 'path';
 import { Temporal } from 'temporal-polyfill';
 import pkg from '../package.json' with { type: 'json' };
 
+// JUnit XML may be produced on Windows; bun et al. then write file= with
+// backslashes (e.g. "tests\unit\cli.test.ts"). GitFilePath is POSIX/git-style
+// everywhere in the system, so normalize at this ingestion boundary — the one
+// place a foreign, OS-shaped path string enters the converter.
+function toGitFilePath(file: string): FK.GitFilePath {
+  return file.split('\\').join('/') as FK.GitFilePath;
+}
+
 let gTZAbbreviationToIANATimezone: Map<string, string>|undefined;
 function tzAbbreviationToIANA(tz: string): string|undefined {
   if (!gTZAbbreviationToIANATimezone) {
@@ -148,7 +156,7 @@ async function traverseJUnitReport(context: ProcessingContext, node: XmlNode) {
     const newSuite: FK.Suite = {
       title: name ?? file,
       location: file && !isNaN(line) ? {
-        file: file as FK.GitFilePath,
+        file: toGitFilePath(file),
         line: line as FK.Number1Based,
         column: 1 as FK.Number1Based,
       } : undefined,
@@ -208,7 +216,7 @@ async function traverseJUnitReport(context: ProcessingContext, node: XmlNode) {
     const test: FK.Test = {
       title: name,
       location: file && !isNaN(line) ? {
-        file: file as FK.GitFilePath,
+        file: toGitFilePath(file),
         line: line as FK.Number1Based,
         column: 1 as FK.Number1Based,
       } : undefined,
