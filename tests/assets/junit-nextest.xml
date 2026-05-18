@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="nextest-run" tests="3" failures="1" errors="0" uuid="f4bdd86e-38f7-4ba5-ba87-63de60e516e1" timestamp="2026-05-17T18:41:35.165-07:00" time="0.009">
+    <testsuite name="nextest_sample" tests="3" disabled="0" errors="0" failures="1">
+        <testcase name="tests::addition_works" classname="nextest_sample" timestamp="2026-05-17T18:41:35.165-07:00" time="0.008">
+        </testcase>
+        <testcase name="tests::string_contains" classname="nextest_sample" timestamp="2026-05-17T18:41:35.166-07:00" time="0.008">
+        </testcase>
+        <testcase name="tests::this_one_fails_on_purpose" classname="nextest_sample" timestamp="2026-05-17T18:41:35.165-07:00" time="0.008">
+            <failure message="thread &apos;tests::this_one_fails_on_purpose&apos; (14765873) panicked at src/lib.rs:19:9" type="test failure with exit code 101">thread &apos;tests::this_one_fails_on_purpose&apos; (14765873) panicked at src/lib.rs:19:9:
+assertion `left == right` failed: two plus two is not five
+  left: 4
+ right: 5
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace</failure>
+            <system-out>
+running 1 test
+test tests::this_one_fails_on_purpose ... FAILED
+
+failures:
+
+failures:
+    tests::this_one_fails_on_purpose
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+</system-out>
+            <system-err>
+thread &apos;tests::this_one_fails_on_purpose&apos; (14765873) panicked at src/lib.rs:19:9:
+assertion `left == right` failed: two plus two is not five
+  left: 4
+ right: 5
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+</system-err>
+        </testcase>
+    </testsuite>
+</testsuites>
