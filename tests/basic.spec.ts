@@ -67,7 +67,9 @@ test('should parse `bun test` JUnit XML', async () => {
   const { report } = await parseJUnit([xml], defaultOptions());
 
   const [suite] = assertCount(report.suites, 1);
+  // bun's top-level testsuite has name === file, so it's a file suite.
   expect(suite.title).toBe('sample.test.ts');
+  expect(suite.type).toBe('file');
 
   const [pass1, pass2, fail] = assertCount(suite.tests, 3);
 
@@ -119,6 +121,9 @@ test('should normalize Windows backslash paths from bun-on-Windows JUnit XML to 
   const { report } = await parseJUnit([xml], { ...defaultOptions(), category: 'bun' });
 
   const [suite] = assertCount(report.suites, 1);
+  // name === file ("tests\unit\cli.test.ts") → file suite, title normalized.
+  expect(suite.title).toBe('tests/unit/cli.test.ts');
+  expect(suite.type).toBe('file');
   const [pass, fail, skip] = assertCount(suite.tests, 3);
 
   // (`!` is safe: bun emits file= and line= on every testcase.)
