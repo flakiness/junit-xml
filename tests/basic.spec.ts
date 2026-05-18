@@ -62,6 +62,33 @@ test('should produce a Flakiness Report from a basic JUnit XML', async () => {
   assertCount(wTest3.attempts, 1);
 });
 
+test('should parse `bun test` JUnit XML', async () => {
+  const xml = await loadFixture('junit-bun.xml');
+  const { report } = await parseJUnit([xml], defaultOptions());
+
+  const [suite] = assertCount(report.suites, 1);
+  expect(suite.title).toBe('sample.test.ts');
+
+  const [pass1, pass2, fail] = assertCount(suite.tests, 3);
+
+  // Passing attempts carry no explicit `status` — `passed` is the implicit
+  // default and is omitted from the normalized report.
+  expect(pass1.title).toBe('addition works');
+  expect(assertCount(pass1.attempts, 1)[0].status ?? 'passed').toBe('passed');
+
+  expect(pass2.title).toBe('string includes');
+  expect(assertCount(pass2.attempts, 1)[0].status ?? 'passed').toBe('passed');
+
+  expect(fail.title).toBe('this one fails on purpose');
+  const [failAttempt] = assertCount(fail.attempts, 1);
+  expect(failAttempt.status).toBe('failed');
+  expect(failAttempt.errors?.[0]?.message).toContain('AssertionError');
+
+  // bun's CI-only testsuite <properties> (e.g. `commit`) is runner
+  // provenance, not environment metadata — it must not leak in.
+  expect(assertCount(report.environments, 1)[0].metadata).toEqual({});
+});
+
 test('should set the report category to `junit` by default', async () => {
   const xml = await loadFixture('junit-basic.xml');
   const { report } = await parseJUnit([xml], defaultOptions());
