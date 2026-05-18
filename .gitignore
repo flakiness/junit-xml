@@ -9,3 +9,4 @@ playwright-report/
 .env*
 .vscode/
 .idea/
+junit.xml
