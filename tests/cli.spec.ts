@@ -1,5 +1,5 @@
 import { readReport } from '@flakiness/sdk';
-import { expect, test } from '@playwright/test';
+import { expect, test } from 'bun:test';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -23,7 +23,9 @@ test('the bin converts a JUnit XML file into a Flakiness report on disk', async 
   ], { stdio: 'pipe' });
 
   const { report } = await readReport(outputDir);
-  expect(report.commitId).toBe('cli-smoke-commit');
+  // `as string`: `commitId` is the branded `CommitId`; bun's strictly-typed
+  // `expect` would otherwise demand the brand on the literal.
+  expect(report.commitId as string).toBe('cli-smoke-commit');
   expect(report.category).toBe('bun');
   expect(report.suites).toHaveLength(2);
 

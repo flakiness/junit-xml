@@ -17,8 +17,15 @@ There is no `exports` map, no `main`, no `index.ts`, no `bin.ts`, no command fac
 
 ## Toolchain
 
-- **pnpm** (not npm/yarn). Use `pnpm install`, `pnpm build`, `pnpm test`.
-- Node 20.17+ / 22.9+. Targets `node22` ESM.
+- **pnpm** for install/build (not npm/yarn). Use `pnpm install`, `pnpm build`.
+- **Bun runs the tests** (`pnpm test` → `bun test`). This package intentionally
+  diverges from the rest of the reporter family's `@playwright/test` parity:
+  it's a pure XML transformer with no browser needs, and `bun test` emits
+  bun-flavored JUnit XML natively — so CI dogfoods the package's own
+  first-class `--category bun` ingestion path on every run.
+- Node 20.17+ / 22.9+. Targets `node22` ESM. NOTE: in-process `parseJUnit`
+  tests run under Bun (JSC), not Node — accepted gap; the shipped artifact and
+  the `cli.spec.ts` smoke test still run under real `node`.
 - Build: Kubik + esbuild (`build.mts`) → ESM, `bundle: false`, then `tsc` for `.d.ts`. Because `bundle: false`, every runtime module is its own esbuild entry point: `parser.ts`, `cli.ts`, `bin.ts`.
 
 ## Invariants — do not break
@@ -30,7 +37,7 @@ There is no `exports` map, no `main`, no `index.ts`, no `bin.ts`, no command fac
 
 ## Tests
 
-`tests/basic.spec.ts` imports `parseJUnit` from `../src/parser.js` (relative — there's no package export) and asserts on the returned report. `tests/cli.spec.ts` spawns the built `lib/cli.js` with `--disable-upload` (so the smoke test never hits the network) and reads the report back. Tests run under `@playwright/test` for parity with the rest of the reporter family; the CLI test requires `pnpm build` first.
+`tests/basic.spec.ts` imports `parseJUnit` from `../src/parser.js` (relative — there's no package export) and asserts on the returned report. `tests/cli.spec.ts` spawns the built `lib/cli.js` with `--disable-upload` (so the smoke test never hits the network) and reads the report back. Tests run under `bun test` (`bun:test` `expect`/`test`); the CLI test spawns real `node` and requires `pnpm build` first. Bun's JUnit reporter writes `test-results/junit.xml`, which CI then feeds back through this package with `--category bun`.
 
 ## Releasing
 

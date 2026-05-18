@@ -19,6 +19,6 @@
     "outDir": "./types",
     "strictBindCallApply": true,
     "target": "ESNext",
-    "types": [ "node" ]
+    "types": [ "node", "bun" ]
   }
 }
