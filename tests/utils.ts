@@ -1,4 +1,4 @@
-import { expect } from '@playwright/test';
+import { expect } from 'bun:test';
 
 /**
  * Asserts that `elements` has exactly `count` entries and returns it as a

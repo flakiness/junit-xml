@@ -13,7 +13,7 @@
   "scripts": {
     "build": "kubik build.mts",
     "watch": "kubik build.mts -w",
-    "test": "playwright test"
+    "test": "bun test tests/ --reporter=junit --reporter-outfile=junit.xml"
   },
   "keywords": [
     "junit",
@@ -39,7 +39,7 @@
     "temporal-polyfill": "^0.3.2"
   },
   "devDependencies": {
-    "@playwright/test": "^1.57.0",
+    "@types/bun": "^1.3.14",
     "@types/node": "^25.0.3",
     "esbuild": "^0.27.2",
     "kubik": "^0.24.0",

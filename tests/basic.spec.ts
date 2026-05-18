@@ -1,6 +1,6 @@
 import { ReportUtils } from '@flakiness/sdk';
 import type { FlakinessReport as FK } from '@flakiness/flakiness-report';
-import { expect, test } from '@playwright/test';
+import { expect, test } from 'bun:test';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -122,8 +122,10 @@ test('should normalize Windows backslash paths from bun-on-Windows JUnit XML to 
   const [pass, fail, skip] = assertCount(suite.tests, 3);
 
   // (`!` is safe: bun emits file= and line= on every testcase.)
+  // `as string`: `file` is the branded `GitFilePath`; bun's strictly-typed
+  // `expect` would otherwise demand the brand on the literal.
   for (const t of [pass, fail, skip])
-    expect(t.location!.file).toBe('tests/unit/cli.test.ts');
+    expect(t.location!.file as string).toBe('tests/unit/cli.test.ts');
 });
 
 test('should set the report category to `junit` by default', async () => {
