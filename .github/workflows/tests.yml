@@ -39,7 +39,7 @@ jobs:
       # worth tracking.
       - name: Convert + upload to flakiness.io
         if: always()
-        run: pnpm dlx @flakiness/junit-xml --flakiness-project flakiness/junit-xml test-results/junit.xml
+        run: pnpm dlx @flakiness/junit-xml --category playwright --flakiness-project flakiness/junit-xml test-results/junit.xml
 
       - name: Upload Flakiness report artifact (fork PRs only)
         if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork
