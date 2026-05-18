@@ -12,6 +12,15 @@ This combines every XML file under the given path into a single Flakiness report
 
 If your environment has no Node.js (or you don't want a `node_modules` round-trip in CI), a [standalone binary](#standalone-binary-no-nodejs) is also available.
 
+## Contents
+
+- [Usage](#usage)
+- [Example: ingesting `bun test` results](#example-ingesting-bun-test-results)
+- [Example: ingesting Rust `cargo-nextest` results](#example-ingesting-rust-cargo-nextest-results)
+- [Standalone binary (no Node.js)](#standalone-binary-no-nodejs)
+- [Uploading](#uploading)
+- [License](#license)
+
 ## Usage
 
 ```
@@ -30,6 +39,33 @@ flakiness-junit-xml <junit-path> [options]
 ```
 
 Requires Node.js `^20.17.0 || >=22.9.0`.
+
+`flakiness-junit-xml` ingests JUnit XML from **any** test runner. Some runners don't emit it by default — the examples below show how to get XML out of the common ones.
+
+## Example: ingesting `bun test` results
+
+`bun test` emits JUnit XML with `--reporter=junit`:
+
+```bash
+bun test --reporter=junit --reporter-outfile=./junit.xml
+npx @flakiness/junit-xml ./junit.xml --category bun --flakiness-project myorg/myproject
+```
+
+## Example: ingesting Rust `cargo-nextest` results
+
+`cargo test` doesn't emit JUnit XML; [`cargo-nextest`](https://nexte.st/) does. Add a CI profile in `.config/nextest.toml`:
+
+```toml
+[profile.ci.junit]
+path = "junit.xml"
+```
+
+Then run the tests and point at the XML nextest writes under `target/nextest/`:
+
+```bash
+cargo nextest run --profile ci
+npx @flakiness/junit-xml ./target/nextest/ci/junit.xml --category rust --flakiness-project myorg/myproject
+```
 
 ## Standalone binary (no Node.js)
 
@@ -60,31 +96,6 @@ curl -fsSL https://github.com/flakiness/junit-xml/releases/latest/download/insta
 ```
 
 Prefer `npx` when Node.js is available — it's the primary, always-current path. Reach for the standalone binary only when Node.js isn't an option.
-
-## Bun
-
-`bun test` emits JUnit XML with `--reporter=junit`:
-
-```bash
-bun test --reporter=junit --reporter-outfile=./junit.xml
-npx @flakiness/junit-xml ./junit.xml --category bun --flakiness-project myorg/myproject
-```
-
-## Rust
-
-`cargo test` doesn't emit JUnit XML; [`cargo-nextest`](https://nexte.st/) does. Add a CI profile in `.config/nextest.toml`:
-
-```toml
-[profile.ci.junit]
-path = "junit.xml"
-```
-
-Run the tests, then point at the XML nextest writes under `target/nextest/`:
-
-```bash
-cargo nextest run --profile ci
-npx @flakiness/junit-xml ./target/nextest/ci/junit.xml --category rust --flakiness-project myorg/myproject
-```
 
 ## Uploading
 
