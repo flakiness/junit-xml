@@ -2,9 +2,15 @@
 set -e
 
 # flakiness-junit-xml installer script
-# Usage: curl -fsSL https://github.com/flakiness/junit-xml/releases/latest/download/install.sh | sh
+#
+# This is a TEMPLATE. The release workflow renders it into install.sh by
+# replacing {{RELEASE_BASE_URL}} with this release's download URL, so the
+# uploaded installer always pins to the exact release it ships with.
+# Running this template file directly will not work — use the published
+# installer:
+#   curl -fsSL https://github.com/flakiness/junit-xml/releases/latest/download/install.sh | sh
 
-BASE_URL="https://github.com/flakiness/junit-xml/releases/latest/download"
+BASE_URL="{{RELEASE_BASE_URL}}"
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 BINARY_NAME="flakiness-junit-xml"
 
