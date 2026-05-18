@@ -1,14 +1,14 @@
 # @flakiness/junit-xml
 
-Convert JUnit XML test reports into a Flakiness report and upload it to [flakiness.io](https://flakiness.io). Parses Surefire and TestNG output, nested `<testsuites>`, retries, `<system-out>` / `<system-err>`, and file attachments.
+Convert JUnit XML test reports into a Flakiness report and upload it to [flakiness.io](https://flakiness.io).
 
 The recommended way to run it is with `npx` (no install step):
 
 ```bash
-npx @flakiness/junit-xml ./build/reports/junit --flakiness-project myorg/myproject
+npx @flakiness/junit-xml --flakiness-project myorg/myproject ./build/reports/junit 
 ```
 
-This combines every XML file under the given path into a single Flakiness report and uploads it to flakiness.io.
+This combines every XML file under the given path into a single Flakiness report and auto-uploads it to flakiness.io. See [authentication](#authentication) on how to configure auto-upload.
 
 If your environment has no Node.js, a [standalone binary](#standalone-binary-no-nodejs) is also available.
 
@@ -18,13 +18,13 @@ If your environment has no Node.js, a [standalone binary](#standalone-binary-no-
 - [Example: ingesting `bun test` results](#example-ingesting-bun-test-results)
 - [Example: ingesting Rust `cargo-nextest` results](#example-ingesting-rust-cargo-nextest-results)
 - [Standalone binary (no Node.js)](#standalone-binary-no-nodejs)
-- [Uploading](#uploading)
+- [Authentication](#authentication)
 - [License](#license)
 
 ## Usage
 
 ```
-flakiness-junit-xml <junit-path> [options]
+flakiness-junit-xml [options] <junit-path>
 
   <junit-path>                   JUnit XML file, or a directory of XML files (scanned recursively)
   --env-name <name>              Environment name (defaults to --category, or `junit`)
@@ -48,7 +48,7 @@ Requires Node.js `^20.17.0 || >=22.9.0`.
 
 ```bash
 bun test --reporter=junit --reporter-outfile=./junit.xml
-npx @flakiness/junit-xml ./junit.xml --category bun --flakiness-project myorg/myproject
+npx @flakiness/junit-xml --category bun --flakiness-project myorg/myproject ./junit.xml
 ```
 
 ## Example: ingesting Rust `cargo-nextest` results
@@ -64,12 +64,13 @@ Then run the tests and point at the XML nextest writes under `target/nextest/`:
 
 ```bash
 cargo nextest run --profile ci
-npx @flakiness/junit-xml ./target/nextest/ci/junit.xml --category rust --flakiness-project myorg/myproject
+npx @flakiness/junit-xml --category rust --flakiness-project myorg/myproject ./target/nextest/ci/junit.xml
 ```
 
 ## Standalone binary (no Node.js)
 
-A secondary distribution: a single self-contained executable that bundles its own runtime, so it works on machines without Node.js. The CLI, flags, and behavior are identical to the `npx` version — only the way you launch it differs.
+This tool is also shipped as a single self-contained executable that bundles
+its own runtime, so it works on machines without Node.js.
 
 **macOS / Linux:**
 
@@ -86,18 +87,16 @@ irm https://github.com/flakiness/junit-xml/releases/latest/download/install.ps1 
 This installs a `flakiness-junit-xml` command on your `PATH`. Then use it exactly as above:
 
 ```bash
-flakiness-junit-xml ./build/reports/junit --flakiness-project myorg/myproject
+flakiness-junit-xml --flakiness-project myorg/myproject ./build/reports/junit 
 ```
 
-The installer detects your OS/architecture (x64 and arm64; Linux glibc and Alpine/musl) and always pulls the latest release. To pin a directory, set `INSTALL_DIR` (default `/usr/local/bin`):
+> [!NOTE]
+> You can set `INSTALL_DIR` to configure custom location for installation.
+> ```bash
+> curl -fsSL https://github.com/flakiness/junit-xml/releases/latest/download/install.sh | INSTALL_DIR="$HOME/.local/bin" sh
+> ```
 
-```bash
-curl -fsSL https://github.com/flakiness/junit-xml/releases/latest/download/install.sh | INSTALL_DIR="$HOME/.local/bin" sh
-```
-
-Prefer `npx` when Node.js is available — it's the primary, always-current path. Reach for the standalone binary only when Node.js isn't an option.
-
-## Uploading
+## Authentication
 
 The report is uploaded to flakiness.io automatically. Authentication, in priority order:
 
