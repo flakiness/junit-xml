@@ -9,6 +9,7 @@ import fs from 'fs';
 import mime from 'mime';
 import path from 'path';
 import { Temporal } from 'temporal-polyfill';
+import pkg from '../package.json' with { type: 'json' };
 
 let gTZAbbreviationToIANATimezone: Map<string, string>|undefined;
 function tzAbbreviationToIANA(tz: string): string|undefined {
@@ -265,6 +266,7 @@ export async function parseJUnit(xmls: string[], options: {
   const report: FK.Report = {
     category: options.category ?? 'junit',
     commitId: options.commitId,
+    generatedBy: { name: pkg.name, version: pkg.version },
     duration: options.runDuration,
     startTimestamp: options.runStartTimestamp,
     url: options.runUrl,
