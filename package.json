@@ -8,7 +8,7 @@
   },
   "description": "Convert JUnit XML test reports into Flakiness Reports",
   "bin": {
-    "flakiness-junit-xml": "./lib/cli.js"
+    "flakiness-junit-xml": "lib/cli.js"
   },
   "scripts": {
     "build": "kubik build.mts",
