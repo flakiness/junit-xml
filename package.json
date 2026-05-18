@@ -1,6 +1,6 @@
 {
   "name": "@flakiness/junit-xml",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0",
   "private": false,
   "repository": {
     "type": "git",
