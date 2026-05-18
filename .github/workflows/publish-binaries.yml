@@ -1,0 +1,49 @@
+name: Publish Binaries
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write  # Required to upload release assets
+
+jobs:
+  publish-binaries:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Build CLI bundle
+        run: |
+          pnpm i --frozen-lockfile
+          pnpm build
+
+      - name: Compile single-file executables (all platforms)
+        run: bash deployment/build.sh all
+
+      - name: Compress binaries
+        run: gzip -9 deployment/dist/*
+
+      - name: Upload assets to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "$GITHUB_REF_NAME" \
+            deployment/dist/*.gz \
+            deployment/assets/install.sh \
+            deployment/assets/install.ps1 \
+            --clobber
