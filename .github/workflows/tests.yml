@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   test:
@@ -32,3 +33,18 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm test
+
+      # Non-fork (push / same-repo PR): OIDC is available, so the CLI
+      # converts and uploads directly. `always()` — red runs are the ones
+      # worth tracking.
+      - name: Convert + upload to flakiness.io
+        if: always()
+        run: pnpm dlx @flakiness/junit-xml --flakiness-project flakiness/junit-xml test-results/junit.xml
+
+      - name: Upload Flakiness report artifact (fork PRs only)
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork
+        uses: actions/upload-artifact@v4
+        with:
+          name: flakiness-report-${{ github.job }}-${{ strategy.job-index }}
+          path: flakiness-report/
+          retention-days: 1
