@@ -89,6 +89,27 @@ test('should parse `bun test` JUnit XML', async () => {
   expect(assertCount(report.environments, 1)[0].metadata).toEqual({});
 });
 
+test('should parse `cargo nextest` JUnit XML', async () => {
+  const xml = await loadFixture('junit-nextest.xml');
+  const { report } = await parseJUnit([xml], defaultOptions());
+
+  const [suite] = assertCount(report.suites, 1);
+  expect(suite.title).toBe('nextest_sample');
+
+  const [pass1, pass2, fail] = assertCount(suite.tests, 3);
+
+  expect(pass1.title).toBe('tests::addition_works');
+  expect(assertCount(pass1.attempts, 1)[0].status ?? 'passed').toBe('passed');
+
+  expect(pass2.title).toBe('tests::string_contains');
+  expect(assertCount(pass2.attempts, 1)[0].status ?? 'passed').toBe('passed');
+
+  expect(fail.title).toBe('tests::this_one_fails_on_purpose');
+  const [failAttempt] = assertCount(fail.attempts, 1);
+  expect(failAttempt.status).toBe('failed');
+  expect(JSON.stringify(failAttempt.errors)).toContain('two plus two is not five');
+});
+
 test('should set the report category to `junit` by default', async () => {
   const xml = await loadFixture('junit-basic.xml');
   const { report } = await parseJUnit([xml], defaultOptions());
