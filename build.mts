@@ -18,10 +18,8 @@ await fs.promises.rm(typesDir, { recursive: true, force: true });
 
 const { errors } = await esbuild.build({
   color: true,
-  // bundle is false, so every module imported at runtime must be its own entry
-  // point. cli.ts (the bin) → parser.ts is the only chain.
+  // cli.ts (the bin) is the only real entry point; parser.ts gets inlined.
   entryPoints: [
-    path.join(srcDir, 'parser.ts'),
     path.join(srcDir, 'cli.ts'),
   ],
   outdir: outDir,
@@ -29,7 +27,13 @@ const { errors } = await esbuild.build({
   platform: 'node',
   target: ['node22'],
   sourcemap: true,
-  bundle: false,
+  // Bundle all prod dependencies (zod in particular) so the published
+  // package has zero runtime dependencies.
+  bundle: true,
+  banner: {
+    // Bundled CJS dependencies require() node builtins at runtime.
+    js: `import { createRequire as __createRequire } from 'node:module'; const require = __createRequire(import.meta.url);`,
+  },
   minify: false,
 });
 
