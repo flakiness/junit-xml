@@ -1,6 +1,7 @@
 {
   "name": "@flakiness/junit-xml",
   "version": "1.2.0",
+  "packageManager": "pnpm@11.5.0",
   "private": false,
   "repository": {
     "type": "git",
