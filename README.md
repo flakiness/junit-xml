@@ -104,6 +104,16 @@ The report is uploaded to flakiness.io automatically. Authentication, in priorit
 
 1. **Access token** — `--token` or `FLAKINESS_ACCESS_TOKEN`.
 2. **GitHub Actions OIDC** — no token needed when `--flakiness-project` (or `FLAKINESS_PROJECT`) is set, the project is bound to the repository, and the workflow grants `id-token: write`.
+3. **GitLab CI/CD OIDC** — no token needed when `--flakiness-project` (or `FLAKINESS_PROJECT`) is set and the project is bound to the GitLab project. GitLab mints ID tokens at job start, so the job must declare one named `FLAKINESS_ID_TOKEN` whose audience matches the project:
+
+   ```yaml
+   test:
+     id_tokens:
+       FLAKINESS_ID_TOKEN:
+         aud: my-org/my-project   # must match --flakiness-project
+     script:
+       - npx @flakiness/junit-xml --flakiness-project my-org/my-project ./junit.xml
+   ```
 
 To convert without uploading, pass `--disable-upload` or set `FLAKINESS_DISABLE_UPLOAD=1`. The report is still written to `--output-dir`.
 
