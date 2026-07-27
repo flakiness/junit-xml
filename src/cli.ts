@@ -130,7 +130,8 @@ async function runConvert(junitPath: string, options: {
 
   // Auto-upload, matching the reporter family's contract. Gated by
   // --disable-upload / FLAKINESS_DISABLE_UPLOAD. Auth is via --token /
-  // FLAKINESS_ACCESS_TOKEN, or GitHub OIDC when `flakinessProject` is set.
+  // FLAKINESS_ACCESS_TOKEN, or CI OIDC (GitHub Actions, GitLab CI/CD) when
+  // `flakinessProject` is set.
   const disableUpload = options.disableUpload || envBool('FLAKINESS_DISABLE_UPLOAD');
   if (!disableUpload) {
     await uploadReport(report, attachments, {

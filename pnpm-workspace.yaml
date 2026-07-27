@@ -1,2 +1,5 @@
 allowBuilds:
   esbuild: true
+minimumReleaseAgeExclude:
+  - '@flakiness/sdk@3.6.0'
+  - '@flakiness/flakiness-report@0.36.0'

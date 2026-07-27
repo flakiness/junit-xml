@@ -32,7 +32,7 @@ There is no `exports` map, no `main`, no `index.ts`, no `bin.ts`, no command fac
 
 1. **Conversion logic lives only in `src/parser.ts`.** `cli.ts`/`bin.ts` are thin wiring. Push schema/normalization changes upstream to `@flakiness/flakiness-report` and `@flakiness/sdk` instead of growing the parser.
 2. **No public API.** Don't add an `exports` map or otherwise re-export `parseJUnit`. If a programmatic consumer ever genuinely needs the parser, that's a deliberate decision to revisit — not a default.
-3. **Auto-upload is the contract.** Like every reporter in the family, the CLI uploads after converting, gated by `--disable-upload` / `FLAKINESS_DISABLE_UPLOAD`, authed via `--token` / `FLAKINESS_ACCESS_TOKEN` or GitHub OIDC (when `flakinessProject` is set). Don't make convert-without-upload the default.
+3. **Auto-upload is the contract.** Like every reporter in the family, the CLI uploads after converting, gated by `--disable-upload` / `FLAKINESS_DISABLE_UPLOAD`, authed via `--token` / `FLAKINESS_ACCESS_TOKEN` or CI OIDC — GitHub Actions, or GitLab CI/CD via a `FLAKINESS_ID_TOKEN` id_token (both when `flakinessProject` is set). Don't make convert-without-upload the default.
 4. **Unknown `testRunner`.** XML doesn't reliably identify the runner that produced it. The converter does not populate `Report.testRunner`; callers disambiguate via `--category` (`bun`, `rust`, default `junit`).
 
 ## Tests
